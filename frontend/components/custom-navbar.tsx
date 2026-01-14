@@ -1,14 +1,13 @@
 import { View, TouchableOpacity, StyleSheet } from 'react-native';
 import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
-import { Home, Calendar, MessageCircle, DollarSign, User } from 'lucide-react-native';
+import { Home, Calendar, MessageCircle, DollarSign, User, MessageSquare, ShoppingBag } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const iconMap: { [key: string]: any } = {
     index: Home,
-    bookings: Calendar,
-    chat: MessageCircle,
-    payments: DollarSign,
-    profile: User,
+    message: MessageSquare,
+    myItems: ShoppingBag,
+    profile: User
 };
 
 export function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
@@ -61,7 +60,7 @@ export function CustomTabBar({ state, descriptors, navigation }: BottomTabBarPro
                                 )}
                                 <Icon
                                     size={24}
-                                    color={isFocused ? '#3b82f6' : '#9ca3af'}
+                                    color={isFocused ? '#00673e' : '#9ca3af'}
                                     strokeWidth={isFocused ? 2.5 : 2}
                                 />
                             </View>
@@ -114,7 +113,7 @@ const styles = StyleSheet.create({
         position: 'absolute',
         width: 48,
         height: 48,
-        backgroundColor: '#eff6ff',
+        backgroundColor: '#dff5eb',
         borderRadius: 24,
         alignItems: 'center',
         justifyContent: 'center',
@@ -122,7 +121,7 @@ const styles = StyleSheet.create({
     activeDot: {
         width: 4,
         height: 4,
-        backgroundColor: '#3b82f6',
+        backgroundColor: '#00673e',
         borderRadius: 2,
         position: 'absolute',
         bottom: 4,
