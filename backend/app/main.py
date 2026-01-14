@@ -9,6 +9,7 @@ app = FastAPI(
 
 app.include_router(
     health.router,
-    
+    prefix="/api/v1",
+    tags=["health"]
 )
 
