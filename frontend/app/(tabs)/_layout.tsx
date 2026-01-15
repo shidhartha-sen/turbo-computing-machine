@@ -5,7 +5,7 @@ import { HapticTab } from '@/components/haptic-tab';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { Colors } from '@/constants/theme';
 import { CustomTabBar } from '@/components/custom-navbar';
-import { Book, Home, MessageSquare, Wrench } from 'lucide-react-native';
+import { Book, Home, MessageSquare, ShoppingBag, User, Wrench } from 'lucide-react-native';
 
 export default function TabLayout() {
   return (
@@ -23,10 +23,24 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="explore"
+        name="message"
         options={{
-          title: 'Explore',
-          tabBarIcon: ({ color }) => <Book size={28} color={color} />,
+          title: 'Message',
+          tabBarIcon: ({ color }) => <MessageSquare size={28} color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="myItems"
+        options={{
+          title: 'My Items',
+          tabBarIcon: ({ color }) => <ShoppingBag size={28} color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="profile"
+        options={{
+          title: 'Profile',
+          tabBarIcon: ({ color }) => <User size={28} color={color} />,
         }}
       />
     </Tabs>

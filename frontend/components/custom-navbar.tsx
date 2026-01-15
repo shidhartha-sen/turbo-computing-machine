@@ -1,7 +1,8 @@
-import { View, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, TouchableOpacity, StyleSheet, Animated } from 'react-native';
 import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { Home, Calendar, MessageCircle, DollarSign, User, MessageSquare, ShoppingBag } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useEffect, useRef } from 'react';
 
 const iconMap: { [key: string]: any } = {
     index: Home,
@@ -10,16 +11,120 @@ const iconMap: { [key: string]: any } = {
     profile: User
 };
 
-export function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
-    const insets = useSafeAreaInsets();
+function AnimatedTabButton({
+    route,
+    isFocused,
+    options,
+    onPress
+}: {
+    route: any;
+    isFocused: boolean;
+    options: any;
+    onPress: () => void;
+}) {
+    const scaleAnim = useRef(new Animated.Value(1)).current;
+    const backgroundOpacity = useRef(new Animated.Value(0)).current;
+    const iconScale = useRef(new Animated.Value(1)).current;
+
+    useEffect(() => {
+        Animated.parallel([
+            Animated.spring(backgroundOpacity, {
+                toValue: isFocused ? 1 : 0,
+                useNativeDriver: true,
+                friction: 8,
+                tension: 100,
+            }),
+            Animated.spring(iconScale, {
+                toValue: isFocused ? 1.1 : 1,
+                useNativeDriver: true,
+                friction: 8,
+                tension: 100,
+            }),
+        ]).start();
+    }, [isFocused]);
+
+    const handlePressIn = () => {
+        Animated.spring(scaleAnim, {
+            toValue: 0.9,
+            useNativeDriver: true,
+            friction: 8,
+            tension: 300,
+        }).start();
+    };
+
+    const handlePressOut = () => {
+        Animated.spring(scaleAnim, {
+            toValue: 1,
+            useNativeDriver: true,
+            friction: 8,
+            tension: 300,
+        }).start();
+    };
+
+    const Icon = iconMap[route.name] || Home;
 
     return (
-        <View
+        <TouchableOpacity
+            key={route.key}
+            accessibilityRole="button"
+            accessibilityState={isFocused ? { selected: true } : {}}
+            accessibilityLabel={options.tabBarAccessibilityLabel}
+            onPress={onPress}
+            onPressIn={handlePressIn}
+            onPressOut={handlePressOut}
+            style={styles.tabButton}
+            activeOpacity={1}
+        >
+            <Animated.View
+                style={[
+                    styles.iconContainer,
+                    { transform: [{ scale: scaleAnim }] }
+                ]}
+            >
+                <Animated.View
+                    style={[
+                        styles.activeBackground,
+                        {
+                            opacity: backgroundOpacity,
+                            transform: [{ scale: backgroundOpacity }]
+                        }
+                    ]}
+                >
+                    <View style={styles.activeDot} />
+                </Animated.View>
+                <Animated.View style={{ transform: [{ scale: iconScale }] }}>
+                    <Icon
+                        size={24}
+                        color={isFocused ? '#00673e' : '#9ca3af'}
+                        strokeWidth={isFocused ? 2.5 : 2}
+                    />
+                </Animated.View>
+            </Animated.View>
+        </TouchableOpacity>
+    );
+}
+
+export function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
+    const insets = useSafeAreaInsets();
+    const slideAnim = useRef(new Animated.Value(100)).current;
+
+    useEffect(() => {
+        Animated.spring(slideAnim, {
+            toValue: 0,
+            useNativeDriver: true,
+            friction: 10,
+            tension: 80,
+        }).start();
+    }, []);
+
+    return (
+        <Animated.View
             style={[
                 styles.tabBar,
                 {
                     paddingBottom: insets.bottom > 0 ? insets.bottom : 12,
                     height: insets.bottom > 0 ? 70 + insets.bottom : 70,
+                    transform: [{ translateY: slideAnim }]
                 },
             ]}
         >
@@ -40,35 +145,18 @@ export function CustomTabBar({ state, descriptors, navigation }: BottomTabBarPro
                         }
                     };
 
-                    const Icon = iconMap[route.name] || Home;
-
                     return (
-                        <TouchableOpacity
+                        <AnimatedTabButton
                             key={route.key}
-                            accessibilityRole="button"
-                            accessibilityState={isFocused ? { selected: true } : {}}
-                            accessibilityLabel={options.tabBarAccessibilityLabel}
+                            route={route}
+                            isFocused={isFocused}
+                            options={options}
                             onPress={onPress}
-                            style={styles.tabButton}
-                            activeOpacity={0.7}
-                        >
-                            <View style={styles.iconContainer}>
-                                {isFocused && (
-                                    <View style={styles.activeBackground}>
-                                        <View style={styles.activeDot} />
-                                    </View>
-                                )}
-                                <Icon
-                                    size={24}
-                                    color={isFocused ? '#00673e' : '#9ca3af'}
-                                    strokeWidth={isFocused ? 2.5 : 2}
-                                />
-                            </View>
-                        </TouchableOpacity>
+                        />
                     );
                 })}
             </View>
-        </View>
+        </Animated.View>
     );
 }
 
