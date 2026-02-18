@@ -52,3 +52,16 @@ CREATE TABLE conversation_participants (
     ON DELETE NO ACTION ON UPDATE NO ACTION
 );
 
+CREATE TABLE messages (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  conversation_id uuid NOT NULL,
+  sender_id uuid NOT NULL,
+  content text NOT NULL,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  CONSTRAINT fk_messages_conversation
+    FOREIGN KEY (conversation_id) REFERENCES conversations(id)
+    ON DELETE NO ACTION ON UPDATE NO ACTION,
+  CONSTRAINT fk_messages_sender
+    FOREIGN KEY (sender_id) REFERENCES users(user_id)
+    ON DELETE NO ACTION ON UPDATE NO ACTION
+);
