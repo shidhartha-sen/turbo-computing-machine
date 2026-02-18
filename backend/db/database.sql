@@ -38,3 +38,17 @@ CREATE TABLE conversations (
     FOREIGN KEY (listing_id) REFERENCES listings(id)
     ON DELETE NO ACTION ON UPDATE NO ACTION
 );
+
+CREATE TABLE conversation_participants (
+  conversation_id uuid NOT NULL,
+  user_id uuid NOT NULL,
+  joined_at timestamptz NOT NULL DEFAULT now(),
+  PRIMARY KEY (conversation_id, user_id),
+  CONSTRAINT fk_cp_conversation
+    FOREIGN KEY (conversation_id) REFERENCES conversations(id)
+    ON DELETE NO ACTION ON UPDATE NO ACTION,
+  CONSTRAINT fk_cp_user
+    FOREIGN KEY (user_id) REFERENCES users(user_id)
+    ON DELETE NO ACTION ON UPDATE NO ACTION
+);
+
