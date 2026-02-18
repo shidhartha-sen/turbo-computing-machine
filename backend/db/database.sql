@@ -30,3 +30,11 @@ CREATE TABLE listing_images (
     ON DELETE NO ACTION ON UPDATE NO ACTION
 );
 
+CREATE TABLE conversations (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  listing_id uuid NOT NULL,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  CONSTRAINT fk_conversations_listing
+    FOREIGN KEY (listing_id) REFERENCES listings(id)
+    ON DELETE NO ACTION ON UPDATE NO ACTION
+);
