@@ -4,16 +4,17 @@ import React from 'react';
 import { HapticTab } from '@/components/haptic-tab';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { Colors } from '@/constants/theme';
-import { CustomTabBar } from '@/components/custom-navbar';
 import { Book, Home, MessageSquare, ShoppingBag, User, Wrench } from 'lucide-react-native';
 
 export default function TabLayout() {
   return (
     <Tabs
-      tabBar={(props) => <CustomTabBar {...props} />}
       screenOptions={{
         headerShown: false,
         tabBarButton: HapticTab,
+        tabBarActiveTintColor: '#00654E',
+        tabBarInactiveTintColor: '#999999',
+        tabBarStyle: { borderTopColor: '#F0F0F0' },
       }}>
       <Tabs.Screen
         name="index"
