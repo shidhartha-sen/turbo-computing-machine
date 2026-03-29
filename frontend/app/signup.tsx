@@ -10,10 +10,12 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
 
 export default function SignupScreen() {
+  const { t } = useTranslation();
   const { register } = useAuth();
   const router = useRouter();
   const [name, setName] = useState('');
@@ -26,15 +28,15 @@ export default function SignupScreen() {
   async function handleSignup() {
     setError(null);
     if (!name || !email || !password || !confirm) {
-      setError('Please fill in all fields.');
+      setError(t('auth.fillAllFields'));
       return;
     }
     if (password !== confirm) {
-      setError('Passwords do not match.');
+      setError(t('auth.passwordsNoMatch'));
       return;
     }
     if (password.length < 8) {
-      setError('Password must be at least 8 characters.');
+      setError(t('auth.passwordTooShort'));
       return;
     }
     setLoading(true);
@@ -44,39 +46,44 @@ export default function SignupScreen() {
     } catch (e: any) {
       const msg: string = e?.message ?? '';
       console.error('[SIGNUP ERROR]', e);
-      if (msg.includes('403')) setError('Only @usask.ca email addresses are allowed.');
-      else if (msg.includes('409')) setError('An account with this email already exists.');
-      else setError(msg || 'Something went wrong. Please try again.');
+      if (msg.includes('403')) setError(t('auth.usaskEmailOnly'));
+      else if (msg.includes('409')) setError(t('auth.emailExists'));
+      else setError(msg || t('auth.somethingWrong'));
     } finally {
       setLoading(false);
     }
   }
 
+  const insets = useSafeAreaInsets();
+
   return (
-    <SafeAreaView className="flex-1 bg-white">
+    <View className="flex-1 bg-white" style={{ paddingBottom: insets.bottom }}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         className="flex-1"
       >
         <ScrollView contentContainerStyle={{ flexGrow: 1 }} keyboardShouldPersistTaps="handled">
           {/* Header */}
-          <View className="bg-[#00654E] pt-16 pb-12 items-center">
-            <Text className="text-white text-4xl font-bold tracking-wide">Flipurt</Text>
-            <Text className="text-green-200 text-sm mt-1">USask Marketplace</Text>
+          <View
+            className="bg-[#00654E] pb-12 items-center"
+            style={{ paddingTop: insets.top + (Platform.OS === 'ios' ? 20 : 40) }}
+          >
+            <Text className="text-white text-4xl font-bold tracking-wide">{t('auth.appName')}</Text>
+            <Text className="text-green-200 text-sm mt-1">{t('auth.tagline')}</Text>
           </View>
 
           <View className="px-6 pt-10 gap-5">
             <View className="gap-1">
-              <Text className="text-2xl font-semibold text-[#1A1A1A]">Create account</Text>
-              <Text className="text-[#666] text-sm">USask students only (@usask.ca)</Text>
+              <Text className="text-2xl font-semibold text-[#1A1A1A]">{t('auth.createAccount')}</Text>
+              <Text className="text-[#666] text-sm">{t('auth.usaskStudentsOnly')}</Text>
             </View>
 
             {/* Full name */}
             <View className="gap-1.5">
-              <Text className="text-sm font-medium text-[#1A1A1A]">Full Name</Text>
+              <Text className="text-sm font-medium text-[#1A1A1A]">{t('auth.fullName')}</Text>
               <TextInput
                 className="border border-[#E0E0E0] rounded-lg px-4 py-3 text-[#1A1A1A] text-base"
-                placeholder="Jane Smith"
+                placeholder={t('auth.fullNamePlaceholder')}
                 placeholderTextColor="#999"
                 autoCapitalize="words"
                 value={name}
@@ -86,10 +93,10 @@ export default function SignupScreen() {
 
             {/* Email */}
             <View className="gap-1.5">
-              <Text className="text-sm font-medium text-[#1A1A1A]">USask Email</Text>
+              <Text className="text-sm font-medium text-[#1A1A1A]">{t('auth.usaskEmail')}</Text>
               <TextInput
                 className="border border-[#E0E0E0] rounded-lg px-4 py-3 text-[#1A1A1A] text-base"
-                placeholder="nsid@usask.ca"
+                placeholder={t('auth.emailPlaceholder')}
                 placeholderTextColor="#999"
                 autoCapitalize="none"
                 keyboardType="email-address"
@@ -100,10 +107,10 @@ export default function SignupScreen() {
 
             {/* Password */}
             <View className="gap-1.5">
-              <Text className="text-sm font-medium text-[#1A1A1A]">Password</Text>
+              <Text className="text-sm font-medium text-[#1A1A1A]">{t('auth.password')}</Text>
               <TextInput
                 className="border border-[#E0E0E0] rounded-lg px-4 py-3 text-[#1A1A1A] text-base"
-                placeholder="••••••••"
+                placeholder={t('auth.passwordPlaceholder')}
                 placeholderTextColor="#999"
                 secureTextEntry
                 value={password}
@@ -113,10 +120,10 @@ export default function SignupScreen() {
 
             {/* Confirm password */}
             <View className="gap-1.5">
-              <Text className="text-sm font-medium text-[#1A1A1A]">Confirm Password</Text>
+              <Text className="text-sm font-medium text-[#1A1A1A]">{t('auth.confirmPassword')}</Text>
               <TextInput
                 className="border border-[#E0E0E0] rounded-lg px-4 py-3 text-[#1A1A1A] text-base"
-                placeholder="••••••••"
+                placeholder={t('auth.passwordPlaceholder')}
                 placeholderTextColor="#999"
                 secureTextEntry
                 value={confirm}
@@ -135,20 +142,20 @@ export default function SignupScreen() {
             >
               {loading
                 ? <ActivityIndicator color="#1A1A1A" />
-                : <Text className="text-[#1A1A1A] font-bold text-base">Create Account</Text>
+                : <Text className="text-[#1A1A1A] font-bold text-base">{t('auth.createAccountButton')}</Text>
               }
             </TouchableOpacity>
 
             {/* Link to login */}
             <View className="flex-row justify-center gap-1 mt-2 pb-8">
-              <Text className="text-[#666] text-sm">Already have an account?</Text>
+              <Text className="text-[#666] text-sm">{t('auth.haveAccount')}</Text>
               <TouchableOpacity onPress={() => router.push('/login' as any)}>
-                <Text className="text-[#00654E] text-sm font-semibold">Sign In</Text>
+                <Text className="text-[#00654E] text-sm font-semibold">{t('auth.signInButton')}</Text>
               </TouchableOpacity>
             </View>
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
-    </SafeAreaView>
+    </View>
   );
 }

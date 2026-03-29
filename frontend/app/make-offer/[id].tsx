@@ -1,6 +1,6 @@
 import { Image } from 'expo-image';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { ArrowLeft, Info } from 'lucide-react-native';
+import { ArrowLeft, Info, Play } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
@@ -14,12 +14,15 @@ import {
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
 
 import { TradeItemCard } from '@/components/offer/TradeItemCard';
 import { api } from '@/services/api';
 import { Listing } from '@/types';
+import { isVideoUrl, getVideoThumbnail } from '@/utils/media';
 
 export default function MakeOfferScreen() {
+  const { t } = useTranslation();
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const insets = useSafeAreaInsets();
@@ -80,7 +83,7 @@ export default function MakeOfferScreen() {
         <TouchableOpacity onPress={() => router.back()} style={{ marginRight: 12 }}>
           <ArrowLeft size={24} color="#1A1A1A" />
         </TouchableOpacity>
-        <Text className="text-[#1A1A1A] text-lg font-bold">Make Offer</Text>
+        <Text className="text-[#1A1A1A] text-lg font-bold">{t('offer.makeOffer')}</Text>
       </View>
 
       <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 120 }} showsVerticalScrollIndicator={false}>
@@ -88,17 +91,26 @@ export default function MakeOfferScreen() {
         {listing && (
           <View className="bg-white rounded-2xl p-4 flex-row gap-3 mb-4" style={{ elevation: 2 }}>
             {listing.images[0] ? (
-              <Image
-                source={{ uri: listing.images[0] }}
-                style={{ width: 56, height: 56, borderRadius: 12 }}
-                contentFit="cover"
-              />
+              <View style={{ width: 56, height: 56, borderRadius: 12, overflow: 'hidden' }}>
+                <Image
+                  source={{ uri: isVideoUrl(listing.images[0]) ? getVideoThumbnail(listing.images[0]) : listing.images[0] }}
+                  style={{ width: 56, height: 56 }}
+                  contentFit="cover"
+                />
+                {isVideoUrl(listing.images[0]) && (
+                  <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, alignItems: 'center', justifyContent: 'center' }}>
+                    <View style={{ backgroundColor: 'rgba(0,0,0,0.5)', borderRadius: 10, width: 20, height: 20, alignItems: 'center', justifyContent: 'center' }}>
+                      <Play size={8} color="white" fill="white" />
+                    </View>
+                  </View>
+                )}
+              </View>
             ) : (
               <View style={{ width: 56, height: 56, borderRadius: 12, backgroundColor: '#F5F5F5' }} />
             )}
             <View className="flex-1">
               <Text className="text-[#00654E] text-xs font-semibold mb-0.5">
-                Buying from {listing.sellerName}
+                {t('offer.buyingFrom', { name: listing.sellerName })}
               </Text>
               <Text className="text-[#1A1A1A] font-semibold text-sm" numberOfLines={2}>
                 {listing.title}
@@ -111,7 +123,7 @@ export default function MakeOfferScreen() {
         )}
 
         {/* Cash offer */}
-        <Text className="text-[#1A1A1A] font-semibold text-sm mb-2">Your Cash Offer</Text>
+        <Text className="text-[#1A1A1A] font-semibold text-sm mb-2">{t('offer.yourCashOffer')}</Text>
         <View className="bg-white rounded-2xl px-4 py-4 mb-4" style={{ elevation: 1 }}>
           <TextInput
             value={cashOffer}
@@ -125,7 +137,7 @@ export default function MakeOfferScreen() {
 
         {/* Propose a trade */}
         <View className="flex-row items-center justify-between mb-3">
-          <Text className="text-[#1A1A1A] font-semibold text-sm">Propose a Trade</Text>
+          <Text className="text-[#1A1A1A] font-semibold text-sm">{t('offer.proposeATrade')}</Text>
           <Switch
             value={tradeEnabled}
             onValueChange={setTradeEnabled}
@@ -155,19 +167,19 @@ export default function MakeOfferScreen() {
             <View className="flex-row items-start gap-2 bg-[#F0F8F5] rounded-xl p-3 mb-4">
               <Info size={14} color="#00654E" style={{ marginTop: 1 }} />
               <Text className="text-[#00654E] text-xs flex-1">
-                Trading items can help lower the cash offer needed.
+                {t('offer.tradeHelp')}
               </Text>
             </View>
           </>
         )}
 
         {/* Message to seller */}
-        <Text className="text-[#1A1A1A] font-semibold text-sm mb-2">Message to Seller</Text>
+        <Text className="text-[#1A1A1A] font-semibold text-sm mb-2">{t('offer.messageToSeller')}</Text>
         <View className="bg-white rounded-2xl px-4 py-3 mb-4" style={{ elevation: 1 }}>
           <TextInput
             value={message}
             onChangeText={setMessage}
-            placeholder="Write a message to the seller..."
+            placeholder={t('offer.messagePlaceholder')}
             placeholderTextColor="#999999"
             multiline
             numberOfLines={4}
@@ -192,7 +204,7 @@ export default function MakeOfferScreen() {
           {submitting ? (
             <ActivityIndicator size="small" color="#1A1A1A" />
           ) : (
-            <Text className="text-[#1A1A1A] font-bold text-base">Send Offer</Text>
+            <Text className="text-[#1A1A1A] font-bold text-base">{t('offer.sendOffer')}</Text>
           )}
         </TouchableOpacity>
       </View>

@@ -2,13 +2,28 @@ import { ActionSheetProvider } from '@expo/react-native-action-sheet';
 import { DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { useRouter, useSegments, Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { useEffect } from 'react';
+import React, { useEffect } from 'react';
+import { I18nextProvider } from 'react-i18next';
+import i18n from '../i18n/config';
+import { TranslationProvider, useTranslatingState } from '../context/TranslationContext';
+import { TranslatingOverlay } from '../components/TranslatingOverlay';
+import { setTranslatingCallback } from '../i18n/googleTranslateBackend';
 import "../global.css";
 import { AuthProvider, useAuth } from '../context/AuthContext';
 
 export const unstable_settings = {
   anchor: '(tabs)',
 };
+
+function TranslationBridge({ children }: { children: React.ReactNode }) {
+  const { setIsTranslating } = useTranslatingState();
+
+  React.useEffect(() => {
+    setTranslatingCallback(setIsTranslating);
+  }, [setIsTranslating]);
+
+  return <>{children}</>;
+}
 
 function RouteGuard({ children }: { children: React.ReactNode }) {
   const { user, isLoading } = useAuth();
@@ -34,6 +49,9 @@ export default function RootLayout() {
   return (
     <ActionSheetProvider>
     <AuthProvider>
+      <I18nextProvider i18n={i18n}>
+      <TranslationProvider>
+      <TranslationBridge>
       <ThemeProvider value={DefaultTheme}>
         <RouteGuard>
           <Stack>
@@ -48,8 +66,12 @@ export default function RootLayout() {
             <Stack.Screen name="onboardingAccountSignup" options={{ presentation: 'modal', title: 'Modal' }} />
           </Stack>
         </RouteGuard>
+        <TranslatingOverlay />
         <StatusBar style="auto" />
       </ThemeProvider>
+      </TranslationBridge>
+      </TranslationProvider>
+      </I18nextProvider>
     </AuthProvider>
     </ActionSheetProvider>
   );

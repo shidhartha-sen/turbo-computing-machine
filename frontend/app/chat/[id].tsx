@@ -1,6 +1,7 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { ArrowLeft, Building2, Info, Send, SmilePlus } from 'lucide-react-native';
+import { ArrowLeft, Send } from 'lucide-react-native';
 import React, { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -19,6 +20,7 @@ import { api } from '@/services/api';
 import { Conversation, Message } from '@/types';
 
 export default function ChatScreen() {
+  const { t } = useTranslation();
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const insets = useSafeAreaInsets();
@@ -76,15 +78,12 @@ export default function ChatScreen() {
         </TouchableOpacity>
         <View className="flex-1">
           <Text className="text-[#1A1A1A] font-bold text-base">
-            {conversation?.otherUserName ?? 'Chat'}
+            {conversation?.otherUserName ?? t('messages.chat')}
           </Text>
           {conversation?.isVerifiedUser && (
-            <Text className="text-[#00654E] text-xs font-semibold">Verified Student</Text>
+            <Text className="text-[#00654E] text-xs font-semibold">{t('messages.verifiedStudent')}</Text>
           )}
         </View>
-        <TouchableOpacity>
-          <Info size={22} color="#1A1A1A" />
-        </TouchableOpacity>
       </View>
 
 {/* Trade banner */}
@@ -92,24 +91,10 @@ export default function ChatScreen() {
         <View className="mx-4 mt-3 bg-white rounded-2xl p-3 flex-row items-center gap-3" style={{ elevation: 2 }}>
           <View className="flex-1">
             <Text className="text-[#1A1A1A] font-semibold text-sm">{conversation.listingTitle}</Text>
-            <Text className="text-[#999999] text-xs">Agreed on trade?</Text>
+            <Text className="text-[#999999] text-xs">{t('messages.agreedOnTrade')}</Text>
           </View>
-          <TouchableOpacity className="bg-[#F4C430] rounded-full px-4 py-2">
-            <Text className="text-[#1A1A1A] font-bold text-xs">Accept Trade</Text>
-          </TouchableOpacity>
         </View>
       )}
-
-      {/* Safe meetup banner */}
-      <View className="mx-4 mt-2 bg-[#F0F8F5] rounded-xl px-4 py-2.5 flex-row items-center gap-2">
-        <Building2 size={14} color="#00654E" />
-        <Text className="text-[#00654E] text-xs flex-1" numberOfLines={1}>
-          Stay safe: Meet at Murray Library or The Bowl
-        </Text>
-        <TouchableOpacity>
-          <Text className="text-[#00654E] text-xs font-bold">›</Text>
-        </TouchableOpacity>
-      </View>
 
       {/* Messages */}
       {loading ? (
@@ -152,14 +137,11 @@ export default function ChatScreen() {
         className="bg-white flex-row items-center px-4 pt-3 border-t border-[#F0F0F0] gap-2"
         style={{ paddingBottom: insets.bottom + 8 }}
       >
-        <TouchableOpacity>
-          <SmilePlus size={24} color="#999999" />
-        </TouchableOpacity>
-        <View className="flex-1 bg-[#F5F5F5] rounded-full px-4 py-2.5">
+<View className="flex-1 bg-[#F5F5F5] rounded-full px-4 py-2.5">
           <TextInput
             value={text}
             onChangeText={setText}
-            placeholder={`Message ${conversation?.otherUserName ?? ''}...`}
+            placeholder={t('messages.messagePlaceholder', { name: conversation?.otherUserName ?? '' })}
             placeholderTextColor="#999999"
             className="text-[#1A1A1A] text-sm"
             multiline

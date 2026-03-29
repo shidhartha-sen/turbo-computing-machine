@@ -48,7 +48,9 @@
           "cameraPermission": "Allow Flipurt to use your camera to take listing photos and videos.",
           "microphonePermission": "Allow Flipurt to use your microphone to record listing videos."
         }
-      ]
+      ],
+      "expo-video",
+      "expo-localization"
     ],
     "experiments": {
       "typedRoutes": true,

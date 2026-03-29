@@ -1,5 +1,6 @@
 import { Search } from 'lucide-react-native';
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { TextInput, View } from 'react-native';
 
 type Props = {
@@ -8,7 +9,10 @@ type Props = {
   placeholder?: string;
 };
 
-export function SearchBar({ value, onChangeText, placeholder = 'Search textbooks, gear...' }: Props) {
+export function SearchBar({ value, onChangeText, placeholder }: Props) {
+  const { t } = useTranslation();
+  const resolvedPlaceholder = placeholder ?? t('home.searchPlaceholder');
+
   return (
     <View className="flex-row items-center bg-white rounded-full px-4 py-3 mx-4 mb-3" style={{ elevation: 2, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.08, shadowRadius: 4 }}>
       <Search size={18} color="#999999" />

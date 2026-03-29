@@ -13,7 +13,6 @@ export type Listing = {
   sellerYear: string;
   isVerified: boolean;
   postedAt: string;
-  meetupLocation?: string;
 };
 
 export type User = {

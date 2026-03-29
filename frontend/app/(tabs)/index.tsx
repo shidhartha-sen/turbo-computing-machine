@@ -1,6 +1,7 @@
 import { useRouter } from 'expo-router';
 import { BookOpen, FlaskConical, LayoutGrid, Plus } from 'lucide-react-native';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   ActivityIndicator,
   FlatList,
@@ -18,14 +19,15 @@ import { ListingCard } from '@/components/listing/ListingCard';
 import { api } from '@/services/api';
 import { Listing } from '@/types';
 
-const CATEGORIES = [
-  { id: 'all', label: 'All', icon: <LayoutGrid size={14} color="#1A1A1A" /> },
-  { id: 'Textbooks', label: 'Textbooks', icon: <BookOpen size={14} color="#1A1A1A" /> },
-  { id: 'Lab Gear', label: 'Lab Gear', icon: <FlaskConical size={14} color="#1A1A1A" /> },
-];
-
 export default function HomeScreen() {
   const router = useRouter();
+  const { t } = useTranslation();
+
+  const CATEGORIES = useMemo(() => [
+    { id: 'all', label: t('home.all'), icon: <LayoutGrid size={14} color="#1A1A1A" /> },
+    { id: 'Textbooks', label: t('home.textbooks'), icon: <BookOpen size={14} color="#1A1A1A" /> },
+    { id: 'Lab Gear', label: t('home.labGear'), icon: <FlaskConical size={14} color="#1A1A1A" /> },
+  ], [t]);
   const [listings, setListings] = useState<Listing[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -88,7 +90,7 @@ export default function HomeScreen() {
 
         {/* Section header */}
         <View className="px-4 mb-3">
-          <Text className="text-[#1A1A1A] text-lg font-bold">Recent Listings</Text>
+          <Text className="text-[#1A1A1A] text-lg font-bold">{t('home.recentListings')}</Text>
         </View>
 
         {/* Grid */}
@@ -97,7 +99,7 @@ export default function HomeScreen() {
         ) : listings.length === 0 ? (
           <View style={{ alignItems: 'center', marginTop: 64, paddingHorizontal: 32 }}>
             <Text style={{ color: '#999999', fontSize: 15, textAlign: 'center' }}>
-              No listings found. Be the first to post!
+              {t('home.noListings')}
             </Text>
           </View>
         ) : (
@@ -139,7 +141,7 @@ export default function HomeScreen() {
         onPress={() => router.push('/modal')}
       >
         <Plus size={18} color="#1A1A1A" />
-        <Text style={{ color: '#1A1A1A', fontWeight: '700', fontSize: 14 }}>Post</Text>
+        <Text style={{ color: '#1A1A1A', fontWeight: '700', fontSize: 14 }}>{t('common.post')}</Text>
       </TouchableOpacity>
     </View>
   );

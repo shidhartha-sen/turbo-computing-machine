@@ -9,21 +9,24 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
 
 export default function LoginScreen() {
+  const { t } = useTranslation();
   const { login } = useAuth();
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const insets = useSafeAreaInsets();
 
   async function handleLogin() {
     setError(null);
     if (!email || !password) {
-      setError('Please fill in all fields.');
+      setError(t('auth.fillAllFields'));
       return;
     }
     setLoading(true);
@@ -33,38 +36,41 @@ export default function LoginScreen() {
     } catch (e: any) {
       const msg: string = e?.message ?? '';
       console.error('[LOGIN ERROR]', e);
-      if (msg.includes('403')) setError('Only @usask.ca accounts are allowed.');
-      else if (msg.includes('401')) setError('Incorrect email or password.');
-      else setError(msg || 'Something went wrong. Please try again.');
+      if (msg.includes('403')) setError(t('auth.usaskOnly'));
+      else if (msg.includes('401')) setError(t('auth.incorrectCredentials'));
+      else setError(msg || t('auth.somethingWrong'));
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-white">
+    <View className="flex-1 bg-white" style={{ paddingBottom: insets.bottom }}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         className="flex-1"
       >
         {/* Header */}
-        <View className="bg-[#00654E] pt-16 pb-12 items-center">
-          <Text className="text-white text-4xl font-bold tracking-wide">Flipurt</Text>
-          <Text className="text-green-200 text-sm mt-1">USask Marketplace</Text>
+        <View
+          className="bg-[#00654E] pb-12 items-center"
+          style={{ paddingTop: insets.top + (Platform.OS === 'ios' ? 20 : 40) }}
+        >
+          <Text className="text-white text-4xl font-bold tracking-wide">{t('auth.appName')}</Text>
+          <Text className="text-green-200 text-sm mt-1">{t('auth.tagline')}</Text>
         </View>
 
         <View className="flex-1 px-6 pt-10 gap-5">
           <View className="gap-1">
-            <Text className="text-2xl font-semibold text-[#1A1A1A]">Sign in</Text>
-            <Text className="text-[#666] text-sm">Use your USask email address</Text>
+            <Text className="text-2xl font-semibold text-[#1A1A1A]">{t('auth.signIn')}</Text>
+            <Text className="text-[#666] text-sm">{t('auth.useUsaskEmail')}</Text>
           </View>
 
           {/* Email */}
           <View className="gap-1.5">
-            <Text className="text-sm font-medium text-[#1A1A1A]">Email</Text>
+            <Text className="text-sm font-medium text-[#1A1A1A]">{t('auth.email')}</Text>
             <TextInput
               className="border border-[#E0E0E0] rounded-lg px-4 py-3 text-[#1A1A1A] text-base"
-              placeholder="nsid@usask.ca"
+              placeholder={t('auth.emailPlaceholder')}
               placeholderTextColor="#999"
               autoCapitalize="none"
               keyboardType="email-address"
@@ -75,10 +81,10 @@ export default function LoginScreen() {
 
           {/* Password */}
           <View className="gap-1.5">
-            <Text className="text-sm font-medium text-[#1A1A1A]">Password</Text>
+            <Text className="text-sm font-medium text-[#1A1A1A]">{t('auth.password')}</Text>
             <TextInput
               className="border border-[#E0E0E0] rounded-lg px-4 py-3 text-[#1A1A1A] text-base"
-              placeholder="••••••••"
+              placeholder={t('auth.passwordPlaceholder')}
               placeholderTextColor="#999"
               secureTextEntry
               value={password}
@@ -97,19 +103,19 @@ export default function LoginScreen() {
           >
             {loading
               ? <ActivityIndicator color="#1A1A1A" />
-              : <Text className="text-[#1A1A1A] font-bold text-base">Sign In</Text>
+              : <Text className="text-[#1A1A1A] font-bold text-base">{t('auth.signInButton')}</Text>
             }
           </TouchableOpacity>
 
           {/* Link to signup */}
           <View className="flex-row justify-center gap-1 mt-2">
-            <Text className="text-[#666] text-sm">Don't have an account?</Text>
+            <Text className="text-[#666] text-sm">{t('auth.noAccount')}</Text>
             <TouchableOpacity onPress={() => router.push('/signup' as any)}>
-              <Text className="text-[#00654E] text-sm font-semibold">Sign Up</Text>
+              <Text className="text-[#00654E] text-sm font-semibold">{t('auth.signUp')}</Text>
             </TouchableOpacity>
           </View>
         </View>
       </KeyboardAvoidingView>
-    </SafeAreaView>
+    </View>
   );
 }

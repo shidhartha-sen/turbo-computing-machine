@@ -1,5 +1,6 @@
 import { MessageSquarePlus } from 'lucide-react-native';
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, FlatList, RefreshControl, Text, View } from 'react-native';
 
 import { ConversationItem } from './ConversationItem';
@@ -15,6 +16,8 @@ type Props = {
 };
 
 export function ConversationList({ conversations, loading, search, onPress, onRefresh, refreshing }: Props) {
+  const { t } = useTranslation();
+
   if (loading) {
     return <ActivityIndicator size="large" color="#00654E" style={{ marginTop: 40 }} />;
   }
@@ -26,12 +29,12 @@ export function ConversationList({ conversations, loading, search, onPress, onRe
           <MessageSquarePlus size={28} color="#00654E" />
         </View>
         <Text className="text-[#1A1A1A] font-semibold text-base">
-          {search ? 'No results found' : 'No conversations yet'}
+          {search ? t('messages.noResults') : t('messages.noConversations')}
         </Text>
         <Text className="text-[#999] text-sm text-center">
           {search
-            ? 'Try a different name or listing'
-            : 'Message a seller from a listing to get started'}
+            ? t('messages.tryDifferent')
+            : t('messages.getStarted')}
         </Text>
       </View>
     );

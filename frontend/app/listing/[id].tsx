@@ -1,7 +1,9 @@
 import { Image } from 'expo-image';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { ArrowLeft, ChevronRight, Heart, MapPin, Share2 } from 'lucide-react-native';
+import { useVideoPlayer, VideoView } from 'expo-video';
+import { ArrowLeft } from 'lucide-react-native';
 import React, { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   ActivityIndicator,
   Dimensions,
@@ -19,10 +21,12 @@ import { SellerCard } from '@/components/profile/SellerCard';
 import { useAuth } from '@/context/AuthContext';
 import { api } from '@/services/api';
 import { Listing } from '@/types';
+import { isVideoUrl } from '@/utils/media';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 export default function ItemDetailsScreen() {
+  const { t } = useTranslation();
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const insets = useSafeAreaInsets();
@@ -57,10 +61,10 @@ export default function ItemDetailsScreen() {
     return (
       <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 32 }}>
         <Text style={{ color: '#999999', fontSize: 15, textAlign: 'center' }}>
-          Listing not found.
+          {t('listing.notFound')}
         </Text>
         <TouchableOpacity onPress={() => router.back()} style={{ marginTop: 16 }}>
-          <Text style={{ color: '#00654E', fontWeight: '600' }}>Go back</Text>
+          <Text style={{ color: '#00654E', fontWeight: '600' }}>{t('common.goBack')}</Text>
         </TouchableOpacity>
       </View>
     );
@@ -95,17 +99,21 @@ export default function ItemDetailsScreen() {
             scrollEventThrottle={16}
           >
             {listing.images.length > 0 ? (
-              listing.images.map((img, i) => (
-                <Image
-                  key={i}
-                  source={{ uri: img }}
-                  style={{ width: SCREEN_WIDTH, height: 300 }}
-                  contentFit="cover"
-                />
-              ))
+              listing.images.map((url, i) =>
+                isVideoUrl(url) ? (
+                  <CarouselVideo key={i} url={url} />
+                ) : (
+                  <Image
+                    key={i}
+                    source={{ uri: url }}
+                    style={{ width: SCREEN_WIDTH, height: 300 }}
+                    contentFit="cover"
+                  />
+                ),
+              )
             ) : (
               <View style={{ width: SCREEN_WIDTH, height: 300, backgroundColor: '#E0E0E0', alignItems: 'center', justifyContent: 'center' }}>
-                <Text style={{ color: '#999999' }}>No image</Text>
+                <Text style={{ color: '#999999' }}>{t('common.noImage')}</Text>
               </View>
             )}
           </ScrollView>
@@ -115,14 +123,6 @@ export default function ItemDetailsScreen() {
             <TouchableOpacity onPress={() => router.back()} style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: 'white', alignItems: 'center', justifyContent: 'center', elevation: 3 }}>
               <ArrowLeft size={20} color="#1A1A1A" />
             </TouchableOpacity>
-            <View style={{ flexDirection: 'row', gap: 8 }}>
-              <TouchableOpacity style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: 'white', alignItems: 'center', justifyContent: 'center', elevation: 3 }}>
-                <Heart size={20} color="#1A1A1A" />
-              </TouchableOpacity>
-              <TouchableOpacity style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: 'white', alignItems: 'center', justifyContent: 'center', elevation: 3 }}>
-                <Share2 size={20} color="#1A1A1A" />
-              </TouchableOpacity>
-            </View>
           </View>
 
           {/* Dot indicators */}
@@ -140,17 +140,17 @@ export default function ItemDetailsScreen() {
           <Text className="text-[#1A1A1A] text-2xl font-bold mb-1">{listing.title}</Text>
           <View className="flex-row items-center mb-3">
             <Text className="text-[#1A1A1A] text-xl font-bold">
-              {listing.priceType === 'trade' ? 'Trade' : `$${Number(listing.price).toFixed(2)}`}
+              {listing.priceType === 'trade' ? t('listing.trade') : `$${Number(listing.price).toFixed(2)}`}
             </Text>
-            <Text className="text-[#999999] text-sm ml-3">Posted {timeAgo}</Text>
+            <Text className="text-[#999999] text-sm ml-3">{t('listing.postedAgo', { timeAgo })}</Text>
           </View>
 
           {/* Badges */}
           <View className="flex-row flex-wrap gap-2 mb-4">
             {listing.isVerified && <BadgeTag label="USask Verified" variant="verified" />}
             <BadgeTag label={listing.condition} variant="condition" />
-            {listing.priceType === 'trade' && <BadgeTag label="Trade" variant="trade" />}
-            {listing.priceType === 'cash' && <BadgeTag label="Cash" variant="cash" />}
+            {listing.priceType === 'trade' && <BadgeTag label={t('listing.trade')} variant="trade" />}
+            {listing.priceType === 'cash' && <BadgeTag label={t('listing.cash')} variant="cash" />}
           </View>
 
           {/* Action buttons */}
@@ -161,14 +161,14 @@ export default function ItemDetailsScreen() {
                 onPress={handleMessage}
                 disabled={startingChat}
               >
-                <Text className="text-[#1A1A1A] font-semibold">{startingChat ? 'Opening...' : 'Message'}</Text>
+                <Text className="text-[#1A1A1A] font-semibold">{startingChat ? t('listing.opening') : t('listing.message')}</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 className="flex-1 flex-row items-center justify-center gap-2 bg-[#F4C430] rounded-full py-3"
                 style={{ elevation: 3 }}
                 onPress={() => router.push(`/make-offer/${listing.id}` as any)}
               >
-                <Text className="text-[#1A1A1A] font-bold">Make Offer</Text>
+                <Text className="text-[#1A1A1A] font-bold">{t('listing.makeOffer')}</Text>
               </TouchableOpacity>
             </View>
           )}
@@ -181,7 +181,7 @@ export default function ItemDetailsScreen() {
           {listing.description.length > 120 && (
             <TouchableOpacity onPress={() => setExpanded(!expanded)} className="mt-1">
               <Text className="text-[#00654E] text-sm font-semibold">
-                {expanded ? 'Show less' : 'Read more'}
+                {expanded ? t('listing.showLess') : t('listing.readMore')}
               </Text>
             </TouchableOpacity>
           )}
@@ -201,25 +201,24 @@ export default function ItemDetailsScreen() {
           />
         </View>
 
-        {/* Safe meetup */}
-        {listing.meetupLocation && (
-          <View className="px-4 mt-4">
-            <View className="flex-row items-center gap-2 mb-2">
-              <MapPin size={16} color="#1A1A1A" />
-              <Text className="text-[#1A1A1A] font-bold text-base">Safe Meetup Location</Text>
-            </View>
-            <View className="bg-white rounded-2xl overflow-hidden" style={{ elevation: 2 }}>
-              <View style={{ height: 120, backgroundColor: '#E8F0EE', alignItems: 'center', justifyContent: 'center' }}>
-                <MapPin size={32} color="#00654E" />
-              </View>
-              <View className="p-3 flex-row items-center">
-                <Text className="text-[#666666] text-sm flex-1">{listing.meetupLocation}</Text>
-                <ChevronRight size={16} color="#999999" />
-              </View>
-            </View>
-          </View>
-        )}
       </ScrollView>
+    </View>
+  );
+}
+
+function CarouselVideo({ url }: { url: string }) {
+  const player = useVideoPlayer(url, (p) => {
+    p.loop = false;
+  });
+
+  return (
+    <View style={{ width: SCREEN_WIDTH, height: 300 }}>
+      <VideoView
+        player={player}
+        style={{ width: SCREEN_WIDTH, height: 300 }}
+        contentFit="cover"
+        nativeControls
+      />
     </View>
   );
 }

@@ -1,5 +1,6 @@
 import { X } from 'lucide-react-native';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   KeyboardAvoidingView,
   Modal,
@@ -21,6 +22,7 @@ type Props = {
 };
 
 export function EditProfileModal({ visible, profile, onClose, onSave }: Props) {
+  const { t } = useTranslation();
   const [name, setName] = useState(profile?.name ?? '');
   const [faculty, setFaculty] = useState(profile?.faculty ?? '');
   const [year, setYear] = useState(profile?.year ?? '');
@@ -32,7 +34,7 @@ export function EditProfileModal({ visible, profile, onClose, onSave }: Props) {
 
   return (
     <Modal visible={visible} animationType="slide" presentationStyle="fullScreen" onRequestClose={onClose}>
-      <SafeAreaView className="flex-1 bg-white">
+      <SafeAreaView className="flex-1 bg-white" edges={['top']}>
         <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} className="flex-1">
 
           {/* Header */}
@@ -40,9 +42,9 @@ export function EditProfileModal({ visible, profile, onClose, onSave }: Props) {
             <TouchableOpacity onPress={onClose} className="w-8 h-8 items-center justify-center rounded-full bg-[#F0F0F0]">
               <X size={16} color="#1A1A1A" />
             </TouchableOpacity>
-            <Text className="text-[#1A1A1A] text-base font-semibold">Edit Profile</Text>
+            <Text className="text-[#1A1A1A] text-base font-semibold">{t('profile.editProfile')}</Text>
             <TouchableOpacity onPress={handleSave}>
-              <Text className="text-[#00654E] font-bold text-sm">Save</Text>
+              <Text className="text-[#00654E] font-bold text-sm">{t('common.save')}</Text>
             </TouchableOpacity>
           </View>
 
@@ -54,19 +56,16 @@ export function EditProfileModal({ visible, profile, onClose, onSave }: Props) {
                   {name ? name.split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase() : 'U'}
                 </Text>
               </View>
-              <TouchableOpacity>
-                <Text className="text-[#00654E] text-sm font-semibold">Change Photo</Text>
-              </TouchableOpacity>
             </View>
 
             <View className="gap-4">
-              <FieldRow label="Full Name" value={name} onChangeText={setName} placeholder="Your name" />
-              <FieldRow label="Faculty / Program" value={faculty} onChangeText={setFaculty} placeholder="e.g. Engineering" />
-              <FieldRow label="Year" value={year} onChangeText={setYear} placeholder="e.g. 3rd Year" />
+              <FieldRow label={t('profile.fullName')} value={name} onChangeText={setName} placeholder={t('profile.namePlaceholder')} />
+              <FieldRow label={t('profile.faculty')} value={faculty} onChangeText={setFaculty} placeholder={t('profile.facultyPlaceholder')} />
+              <FieldRow label={t('profile.year')} value={year} onChangeText={setYear} placeholder={t('profile.yearPlaceholder')} />
 
               <View className="mt-2 bg-[#F5F5F5] rounded-xl p-3">
                 <Text className="text-xs text-[#999] text-center">
-                  Email address cannot be changed. Contact support if needed.
+                  {t('profile.emailCannotChange')}
                 </Text>
               </View>
             </View>

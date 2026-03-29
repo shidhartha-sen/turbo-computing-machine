@@ -54,7 +54,6 @@ class Listing(Base):
     condition: Mapped[str] = mapped_column(Text, nullable=False, default="good")
     category: Mapped[str] = mapped_column(Text, nullable=False, default="Other")
     price_type: Mapped[str] = mapped_column(Text, nullable=False, default="cash")
-    meeting_location: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
 
     seller: Mapped["User"] = relationship("User", back_populates="listings")
     images: Mapped[list["ListingImage"]] = relationship(

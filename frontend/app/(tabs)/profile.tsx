@@ -1,12 +1,16 @@
 import {
+  Globe,
   LogOut,
-  Package,
   Star,
 } from 'lucide-react-native';
+import { useTranslation } from 'react-i18next';
+import languages from '@/i18n/languages';
 import React, { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
+  FlatList,
+  Modal,
   RefreshControl,
   ScrollView,
   Text,
@@ -23,6 +27,9 @@ import { Review, User } from '@/types';
 
 export default function ProfileScreen() {
   const { logout } = useAuth();
+  const { t, i18n } = useTranslation();
+  const [langPickerVisible, setLangPickerVisible] = useState(false);
+  const currentLang = languages.find((l) => l.code === i18n.language) ?? languages[0];
   const [profile, setProfile] = useState<User | null>(null);
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
@@ -57,9 +64,9 @@ const fetchProfile = async () => {
   }
 
   function handleSignOut() {
-    Alert.alert('Sign Out', 'Are you sure you want to sign out?', [
-      { text: 'Cancel', style: 'cancel' },
-      { text: 'Sign Out', style: 'destructive', onPress: logout },
+    Alert.alert(t('profile.signOut'), t('profile.signOutConfirm'), [
+      { text: t('common.cancel'), style: 'cancel' },
+      { text: t('profile.signOut'), style: 'destructive', onPress: logout },
     ]);
   }
 
@@ -84,21 +91,15 @@ const fetchProfile = async () => {
 
         <View className="h-8" />
 
-        {/* ── Account ──────────────────────────────── */}
-        <SettingsSection title="Account">
+
+{/* ── Language ────────────────────────────── */}
+        <SettingsSection title="">
           <SettingsRow
             type="nav"
-            icon={<Package size={16} color="#00654E" />}
-            label="My Listings"
-            sublabel={`${profile?.listingsCount ?? 0} posted`}
-            onPress={() => {}}
-          />
-          <SettingsRow
-            type="nav"
-            icon={<Star size={16} color="#F4C430" />}
-            label="My Reviews"
-            sublabel={`${profile?.reviewsCount ?? 0} reviews`}
-            onPress={() => {}}
+            icon={<Globe size={16} color="#00654E" />}
+            label={t('profile.language')}
+            value={currentLang.name}
+            onPress={() => setLangPickerVisible(true)}
             last
           />
         </SettingsSection>
@@ -108,7 +109,7 @@ const fetchProfile = async () => {
           <SettingsRow
             type="nav"
             icon={<LogOut size={16} color="#EF4444" />}
-            label="Sign Out"
+            label={t('profile.signOut')}
             danger
             onPress={handleSignOut}
             last
@@ -118,7 +119,7 @@ const fetchProfile = async () => {
         {/* ── Recent Reviews ───────────────────────── */}
         {reviews.length > 0 && (
           <View className="px-4 mt-2 mb-4">
-            <Text className="text-[#1A1A1A] text-base font-bold mb-3">Recent Reviews</Text>
+            <Text className="text-[#1A1A1A] text-base font-bold mb-3">{t('profile.recentReviews')}</Text>
             {reviews.map((review) => (
               <ReviewRow key={review.id} review={review} />
             ))}
@@ -126,8 +127,48 @@ const fetchProfile = async () => {
         )}
 
         {/* App version */}
-        <Text className="text-center text-[#CCC] text-xs mt-4">Flipurt v1.0 · USask Marketplace</Text>
+        <Text className="text-center text-[#CCC] text-xs mt-4">{t('profile.appVersion')}</Text>
       </ScrollView>
+
+      <Modal
+        visible={langPickerVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setLangPickerVisible(false)}
+      >
+        <View className="flex-1 justify-end bg-black/40">
+          <View className="bg-white rounded-t-3xl max-h-[60%]">
+            <View className="flex-row items-center justify-between px-5 py-4 border-b border-gray-100">
+              <Text className="text-lg font-bold text-[#1A1A1A]">{t('profile.language')}</Text>
+              <TouchableOpacity onPress={() => setLangPickerVisible(false)}>
+                <Text className="text-[#00654E] font-semibold">{t('common.cancel')}</Text>
+              </TouchableOpacity>
+            </View>
+            <FlatList
+              data={languages}
+              keyExtractor={(item) => item.code}
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  className={`flex-row items-center justify-between px-5 py-4 border-b border-gray-50 ${
+                    item.code === i18n.language ? 'bg-[#E8F5E9]' : ''
+                  }`}
+                  onPress={() => {
+                    i18n.changeLanguage(item.code);
+                    setLangPickerVisible(false);
+                  }}
+                >
+                  <Text className={`text-base ${item.code === i18n.language ? 'text-[#00654E] font-bold' : 'text-[#1A1A1A]'}`}>
+                    {item.name}
+                  </Text>
+                  {item.code === i18n.language && (
+                    <Text className="text-[#00654E] font-bold">✓</Text>
+                  )}
+                </TouchableOpacity>
+              )}
+            />
+          </View>
+        </View>
+      </Modal>
 
       <EditProfileModal
         visible={editVisible}

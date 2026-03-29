@@ -18,7 +18,6 @@ function mapListing(r: any): import('@/types').Listing {
     sellerYear: r.seller_year ?? '',
     isVerified: r.is_verified ?? false,
     postedAt: r.created_at,
-    meetupLocation: r.meeting_location ?? undefined,
   };
 }
 
@@ -82,7 +81,6 @@ export const api = {
     condition: string;
     category: string;
     price_type: string;
-    meeting_location: string;
     image_urls: string[];
   }): Promise<{ id: string }> =>
     request('/api/v1/listings', { method: 'POST', body: JSON.stringify(data) }),

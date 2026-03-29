@@ -1,6 +1,7 @@
 import { useRouter } from 'expo-router';
 import { Plus, Package } from 'lucide-react-native';
 import React, { useCallback, useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, FlatList, RefreshControl, Text, TouchableOpacity, View } from 'react-native';
 
 
@@ -13,6 +14,7 @@ import { MyListing } from '@/types';
 type Tab = 'active' | 'sold';
 
 export default function MyItemsScreen() {
+  const { t } = useTranslation();
   const router = useRouter();
   const [tab, setTab] = useState<Tab>('active');
   const [listings, setListings] = useState<MyListing[]>([]);
@@ -57,9 +59,9 @@ export default function MyItemsScreen() {
       {/* Section label */}
       <View className="flex-row items-center justify-between px-4 pb-2">
         <Text className="text-[#1A1A1A] text-base font-bold">
-          {tab === 'active' ? 'Active Listings' : 'Sold / Traded'}
+          {tab === 'active' ? t('myItems.activeListings') : t('myItems.soldTraded')}
         </Text>
-        <Text className="text-[#999] text-sm">{listings.length} item{listings.length !== 1 ? 's' : ''}</Text>
+        <Text className="text-[#999] text-sm">{t('myItems.itemCount', { count: listings.length })}</Text>
       </View>
 
       {loading ? (
@@ -70,12 +72,12 @@ export default function MyItemsScreen() {
             <Package size={28} color="#00654E" />
           </View>
           <Text className="text-[#1A1A1A] font-semibold text-base">
-            {tab === 'active' ? 'No active listings' : 'Nothing sold yet'}
+            {tab === 'active' ? t('myItems.noActiveListings') : t('myItems.nothingSold')}
           </Text>
           <Text className="text-[#999] text-sm text-center">
             {tab === 'active'
-              ? 'Tap the + button to post your first listing'
-              : 'Items you mark as sold will appear here'}
+              ? t('myItems.postFirst')
+              : t('myItems.soldAppearHere')}
           </Text>
         </View>
       ) : (
@@ -118,7 +120,7 @@ export default function MyItemsScreen() {
         onPress={() => router.push('/modal' as any)}
       >
         <Plus size={18} color="#1A1A1A" />
-        <Text style={{ color: '#1A1A1A', fontWeight: '700', fontSize: 14 }}>Post</Text>
+        <Text style={{ color: '#1A1A1A', fontWeight: '700', fontSize: 14 }}>{t('common.post')}</Text>
       </TouchableOpacity>
     </View>
   );

@@ -1,94 +1,138 @@
-# CMPT370
+# Flipurt - Student Marketplace
 
+A mobile marketplace app for students to buy and sell items, built with React Native (Expo) and FastAPI.
 
+---
 
-## Getting started
+## Prerequisites
 
-To make it easy for you to get started with GitLab, here's a list of recommended next steps.
+- **Node.js** v18+ and **npm**
+- **Python** 3.11+
+- **Expo Go** app on your phone (or an Android/iOS emulator)
+- Access to a PostgreSQL database (e.g. Neon)
 
-Already a pro? Just edit this README.md and make it your own. Want to make it easy? [Use the template at the bottom](#editing-this-readme)!
+---
 
-## Add your files
-
-* [Create](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#create-a-file) or [upload](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#upload-a-file) files
-* [Add files using the command line](https://docs.gitlab.com/topics/git/add_files/#add-files-to-a-git-repository) or push an existing Git repository with the following command:
+## Project Structure
 
 ```
-cd existing_repo
-git remote add origin https://git.cs.usask.ca/ezf345/cmpt370.git
-git branch -M main
-git push -uf origin main
+cmpt370/
+├── backend/     # FastAPI Python backend
+└── frontend/    # React Native Expo app
 ```
 
-## Integrate with your tools
+---
 
-* [Set up project integrations](https://git.cs.usask.ca/ezf345/cmpt370/-/settings/integrations)
+## Backend Setup
 
-## Collaborate with your team
+### 1. Install dependencies
 
-* [Invite team members and collaborators](https://docs.gitlab.com/ee/user/project/members/)
-* [Create a new merge request](https://docs.gitlab.com/ee/user/project/merge_requests/creating_merge_requests.html)
-* [Automatically close issues from merge requests](https://docs.gitlab.com/ee/user/project/issues/managing_issues.html#closing-issues-automatically)
-* [Enable merge request approvals](https://docs.gitlab.com/ee/user/project/merge_requests/approvals/)
-* [Set auto-merge](https://docs.gitlab.com/user/project/merge_requests/auto_merge/)
+```bash
+cd backend
+pip install -r requirements.txt
+```
 
-## Test and Deploy
+### 2. Configure environment variables
 
-Use the built-in continuous integration in GitLab.
+Create a `backend/.env` file:
 
-* [Get started with GitLab CI/CD](https://docs.gitlab.com/ee/ci/quick_start/)
-* [Analyze your code for known vulnerabilities with Static Application Security Testing (SAST)](https://docs.gitlab.com/ee/user/application_security/sast/)
-* [Deploy to Kubernetes, Amazon EC2, or Amazon ECS using Auto Deploy](https://docs.gitlab.com/ee/topics/autodevops/requirements.html)
-* [Use pull-based deployments for improved Kubernetes management](https://docs.gitlab.com/ee/user/clusters/agent/)
-* [Set up protected environments](https://docs.gitlab.com/ee/ci/environments/protected_environments.html)
+```env
+DATABASE_URL=postgresql+psycopg2://<user>:<password>@<host>/<database>
+JWT_SECRET=<your-secret-key>
+JWT_ALGORITHM=HS256
+JWT_EXPIRE_MINUTES=10080
 
-***
+# Optional — SMTP for email OTP
+SMTP_HOST=
+SMTP_PORT=465
+SMTP_USER=
+SMTP_PASSWORD=
+SMTP_FROM=
+```
 
-# Editing this README
+### 3. Set up the database
 
-When you're ready to make this README your own, just edit this file and use the handy template below (or feel free to structure it however you want - this is just a starting point!). Thanks to [makeareadme.com](https://www.makeareadme.com/) for this template.
+Run the SQL schema against your PostgreSQL database:
 
-## Suggestions for a good README
+```bash
+psql $DATABASE_URL -f db/database.sql
+```
 
-Every project is different, so consider which of these sections apply to yours. The sections used in the template are suggestions for most open source projects. Also keep in mind that while a README can be too long and detailed, too long is better than too short. If you think your README is too long, consider utilizing another form of documentation rather than cutting out information.
+### 4. Start the backend server
 
-## Name
-Choose a self-explaining name for your project.
+```bash
+uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+```
 
-## Description
-Let people know what your project can do specifically. Provide context and add a link to any reference visitors might be unfamiliar with. A list of Features or a Background subsection can also be added here. If there are alternatives to your project, this is a good place to list differentiating factors.
+The API will be available at `http://localhost:8000`.
+Interactive docs: `http://localhost:8000/docs`
 
-## Badges
-On some READMEs, you may see small images that convey metadata, such as whether or not all the tests are passing for the project. You can use Shields to add some to your README. Many services also have instructions for adding a badge.
+---
 
-## Visuals
-Depending on what you are making, it can be a good idea to include screenshots or even a video (you'll frequently see GIFs rather than actual videos). Tools like ttygif can help, but check out Asciinema for a more sophisticated method.
+## Frontend Setup
 
-## Installation
-Within a particular ecosystem, there may be a common way of installing things, such as using Yarn, NuGet, or Homebrew. However, consider the possibility that whoever is reading your README is a novice and would like more guidance. Listing specific steps helps remove ambiguity and gets people to using your project as quickly as possible. If it only runs in a specific context like a particular programming language version or operating system or has dependencies that have to be installed manually, also add a Requirements subsection.
+### 1. Install dependencies
 
-## Usage
-Use examples liberally, and show the expected output if you can. It's helpful to have inline the smallest example of usage that you can demonstrate, while providing links to more sophisticated examples if they are too long to reasonably include in the README.
+```bash
+cd frontend
+npm install
+```
 
-## Support
-Tell people where they can go to for help. It can be any combination of an issue tracker, a chat room, an email address, etc.
+### 2. Configure environment variables
 
-## Roadmap
-If you have ideas for releases in the future, it is a good idea to list them in the README.
+Create a `frontend/.env.local` file:
 
-## Contributing
-State if you are open to contributions and what your requirements are for accepting them.
+```env
+EXPO_PUBLIC_API_URL=http://<your-machine-ip>:8000
+EXPO_PUBLIC_MS_CLIENT_ID=<microsoft-app-client-id>
+EXPO_PUBLIC_MS_TENANT_ID=common
+```
 
-For people who want to make changes to your project, it's helpful to have some documentation on how to get started. Perhaps there is a script that they should run or some environment variables that they need to set. Make these steps explicit. These instructions could also be useful to your future self.
+> **Note:** Use your machine's local IP address (not `localhost`) so that your phone or emulator can reach the backend. Find your IP with `ip addr` on Linux or `ifconfig` on Mac.
 
-You can also document commands to lint the code or run tests. These steps help to ensure high code quality and reduce the likelihood that the changes inadvertently break something. Having instructions for running tests is especially helpful if it requires external setup, such as starting a Selenium server for testing in a browser.
+### 3. Start the Expo development server
 
-## Authors and acknowledgment
-Show your appreciation to those who have contributed to the project.
+```bash
+cd frontend
+npx expo start
+```
 
-## License
-For open source projects, say how it is licensed.
+Then choose how to run the app:
 
-## Project status
-If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.
-# turbo-computing-machine
+| Key | Action |
+|-----|--------|
+| `a` | Open in Android emulator |
+| `i` | Open in iOS simulator |
+| `w` | Open in web browser |
+| Scan QR | Open in **Expo Go** on your phone |
+
+---
+
+## Running with Docker (Backend only)
+
+```bash
+docker build -t cmpt370-backend backend/
+docker run --env-file backend/.env -p 8000:8000 cmpt370-backend
+```
+
+---
+
+## Microsoft OAuth Setup
+
+To enable Microsoft login:
+
+1. Register an app in the [Azure Portal](https://portal.azure.com) under **App registrations**
+2. Add a redirect URI: `exp://localhost:8081` (for Expo Go) or your app's custom scheme
+3. Copy the **Application (client) ID** and **Tenant ID** into `frontend/.env.local`
+
+---
+
+## Tech Stack
+
+| Layer | Technology |
+|-------|-----------|
+| Frontend | React Native, Expo, TypeScript, NativeWind (Tailwind) |
+| Backend | FastAPI, SQLAlchemy, Uvicorn |
+| Database | PostgreSQL (Neon serverless) |
+| Auth | Microsoft OAuth + JWT |
+| Routing | Expo Router (file-based) |

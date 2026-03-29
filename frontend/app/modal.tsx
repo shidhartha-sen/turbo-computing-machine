@@ -16,21 +16,17 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
 import { api } from '@/services/api';
+import { uploadAllToCloudinary } from '@/services/cloudinary';
 
 const CATEGORIES = ['Textbooks', 'Lab Gear', 'Electronics', 'Furniture', 'Clothing', 'Other'];
-
-const MEETING_LOCATIONS = [
-  { id: 'murray', label: 'Murray Library', sublabel: 'Ground Floor', icon: '📚' },
-  { id: 'place_riel', label: 'Place Riel', sublabel: 'Food Court', icon: '🍽️' },
-  { id: 'health_sciences', label: 'Health Sciences', sublabel: 'Main Atrium', icon: '🏛️' },
-  { id: 'other', label: 'Other On-Campus', sublabel: 'Specify in description', icon: '📍' },
-];
 
 type PriceType = 'cash' | 'trade' | 'both';
 type MediaItem = { uri: string; type: 'image' | 'video' };
 
 export default function CreateListingModal() {
+  const { t } = useTranslation();
   const router = useRouter();
 
   const [media, setMedia] = useState<MediaItem[]>([]);
@@ -39,8 +35,7 @@ export default function CreateListingModal() {
   const [description, setDescription] = useState('');
   const [priceType, setPriceType] = useState<PriceType>('cash');
   const [price, setPrice] = useState('');
-  const [meetingLocation, setMeetingLocation] = useState('murray');
-  const [submitted, setSubmitted] = useState(false);
+const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
   const [createdId, setCreatedId] = useState<string | null>(null);
 
@@ -55,7 +50,7 @@ export default function CreateListingModal() {
   function openCategoryPicker() {
     const options = [...CATEGORIES, 'Cancel'];
     showActionSheetWithOptions(
-      { options, cancelButtonIndex: options.length - 1, title: 'Select Category' },
+      { options, cancelButtonIndex: options.length - 1, title: t('listing.selectCategory') },
       (index) => {
         if (index !== undefined && index < CATEGORIES.length) setCategory(CATEGORIES[index]);
       },
@@ -66,24 +61,24 @@ export default function CreateListingModal() {
     if (media.length >= MAX_PHOTOS) return;
     showActionSheetWithOptions(
       {
-        options: ['Take Photo', 'Record Video', 'Choose from Library', 'Cancel'],
+        options: [t('listing.takePhoto'), t('listing.recordVideo'), t('listing.chooseFromLibrary'), t('common.cancel')],
         cancelButtonIndex: 3,
-        title: 'Add Media',
+        title: t('listing.addMedia'),
       },
       async (index) => {
         if (index === 0) {
           const { status } = await ImagePicker.requestCameraPermissionsAsync();
-          if (status !== 'granted') { Alert.alert('Permission required', 'Please allow camera access.'); return; }
+          if (status !== 'granted') { Alert.alert(t('listing.permissionRequired'), t('listing.allowCamera')); return; }
           const result = await ImagePicker.launchCameraAsync({ mediaTypes: ['images'], quality: 0.8, allowsEditing: true, aspect: [1, 1] });
           if (!result.canceled && result.assets[0]) setMedia((prev) => [...prev, { uri: result.assets[0].uri, type: 'image' }]);
         } else if (index === 1) {
           const { status } = await ImagePicker.requestCameraPermissionsAsync();
-          if (status !== 'granted') { Alert.alert('Permission required', 'Please allow camera access.'); return; }
+          if (status !== 'granted') { Alert.alert(t('listing.permissionRequired'), t('listing.allowCamera')); return; }
           const result = await ImagePicker.launchCameraAsync({ mediaTypes: ['videos'], videoMaxDuration: 30 });
           if (!result.canceled && result.assets[0]) setMedia((prev) => [...prev, { uri: result.assets[0].uri, type: 'video' }]);
         } else if (index === 2) {
           const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-          if (status !== 'granted') { Alert.alert('Permission required', 'Please allow photo library access.'); return; }
+          if (status !== 'granted') { Alert.alert(t('listing.permissionRequired'), t('listing.allowPhotos')); return; }
           const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images', 'videos'], quality: 0.8, allowsEditing: true, aspect: [1, 1] });
           if (!result.canceled && result.assets[0]) {
             const asset = result.assets[0];
@@ -104,12 +99,13 @@ export default function CreateListingModal() {
 
     const parsedPrice = priceType === 'trade' ? 0 : parseFloat(price.replace(/[^0-9.]/g, ''));
     if (priceType !== 'trade' && (isNaN(parsedPrice) || parsedPrice <= 0)) {
-      Alert.alert('Invalid price', 'Please enter a valid price.');
+      Alert.alert(t('listing.invalidPrice'), t('listing.invalidPriceMessage'));
       return;
     }
 
     setLoading(true);
     try {
+      const imageUrls = await uploadAllToCloudinary(media.map((m) => m.uri));
       const result = await api.createListing({
         title: title.trim(),
         description: description.trim(),
@@ -117,12 +113,11 @@ export default function CreateListingModal() {
         condition: 'good',
         category,
         price_type: priceType,
-        meeting_location: meetingLocation,
-        image_urls: media.map((m) => m.uri),
+        image_urls: imageUrls,
       });
       setCreatedId(result.id);
     } catch (e: any) {
-      Alert.alert('Error', e?.message || 'Failed to post listing. Please try again.');
+      Alert.alert(t('common.error'), e?.message || t('listing.postFailed'));
     } finally {
       setLoading(false);
     }
@@ -133,16 +128,16 @@ export default function CreateListingModal() {
   // ── Success state ───────────────────────────────────────────────────────────
   if (createdId) {
     return (
-      <SafeAreaView className="flex-1 bg-white items-center justify-center px-8 gap-6">
+      <SafeAreaView edges={['bottom']} className="flex-1 bg-white items-center justify-center px-8 gap-6">
         <View className="w-20 h-20 rounded-full bg-[#E8F5F0] items-center justify-center">
           <View className="w-14 h-14 rounded-full bg-[#00654E] items-center justify-center">
             <Check size={28} color="white" strokeWidth={3} />
           </View>
         </View>
         <View className="items-center gap-2">
-          <Text className="text-[#1A1A1A] text-2xl font-bold text-center">Your listing is live!</Text>
+          <Text className="text-[#1A1A1A] text-2xl font-bold text-center">{t('listing.listingLive')}</Text>
           <Text className="text-[#666] text-sm text-center">
-            Great job! Students can now discover your item on the marketplace.
+            {t('listing.listingLiveMessage')}
           </Text>
         </View>
         <View className="w-full gap-3 mt-2">
@@ -150,17 +145,17 @@ export default function CreateListingModal() {
             onPress={() => { router.dismiss(); router.push(`/listing/${createdId}` as any); }}
             className="bg-[#F4C430] rounded-full py-4 items-center"
           >
-            <Text className="text-[#1A1A1A] font-bold text-base">View Listing</Text>
+            <Text className="text-[#1A1A1A] font-bold text-base">{t('listing.viewListing')}</Text>
           </TouchableOpacity>
           <TouchableOpacity
             onPress={() => {
               setCreatedId(null); setMedia([]); setTitle(''); setCategory('');
               setDescription(''); setPrice(''); setPriceType('cash');
-              setMeetingLocation('murray'); setSubmitted(false);
+              setSubmitted(false);
             }}
             className="border-2 border-[#00654E] rounded-full py-4 items-center"
           >
-            <Text className="text-[#00654E] font-bold text-base">Post Another Item</Text>
+            <Text className="text-[#00654E] font-bold text-base">{t('listing.postAnother')}</Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>
@@ -168,7 +163,7 @@ export default function CreateListingModal() {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-white">
+    <SafeAreaView edges={['bottom']} className="flex-1 bg-white">
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} className="flex-1">
 
         {/* Header */}
@@ -176,7 +171,7 @@ export default function CreateListingModal() {
           <TouchableOpacity onPress={() => router.dismiss()} className="w-8 h-8 items-center justify-center rounded-full bg-[#F0F0F0]">
             <X size={16} color="#1A1A1A" />
           </TouchableOpacity>
-          <Text className="text-[#1A1A1A] text-base font-semibold">Create Listing</Text>
+          <Text className="text-[#1A1A1A] text-base font-semibold">{t('listing.createListing')}</Text>
           <View className="w-8" />
         </View>
 
@@ -190,8 +185,8 @@ export default function CreateListingModal() {
           {/* Photos / Videos */}
           <View className="mb-6">
             <View className="flex-row items-center justify-between mb-2">
-              <Text className="text-xs font-bold text-[#666] tracking-widest uppercase">Photos & Videos</Text>
-              <Text className="text-xs text-[#999]">{media.length}/{MAX_PHOTOS} added</Text>
+              <Text className="text-xs font-bold text-[#666] tracking-widest uppercase">{t('listing.photosVideos')}</Text>
+              <Text className="text-xs text-[#999]">{t('listing.mediaCount', { count: media.length, max: MAX_PHOTOS })}</Text>
             </View>
             <View className="flex-row gap-2">
               {/* First slot — add button */}
@@ -227,41 +222,41 @@ export default function CreateListingModal() {
 
           {/* Title */}
           <View className="mb-4">
-            <Text className="text-xs font-bold text-[#666] tracking-widest uppercase mb-1.5">Title</Text>
+            <Text className="text-xs font-bold text-[#666] tracking-widest uppercase mb-1.5">{t('listing.title')}</Text>
             <TextInput
               value={title}
               onChangeText={setTitle}
-              placeholder="What are you selling?"
+              placeholder={t('listing.titlePlaceholder')}
               placeholderTextColor="#BBB"
               className="border border-[#E0E0E0] rounded-xl px-4 py-3 text-[#1A1A1A] text-sm bg-white"
               style={{ borderColor: titleError ? '#EF4444' : '#E0E0E0' }}
             />
-            {titleError && <Text className="text-red-500 text-xs mt-1">Title is required</Text>}
+            {titleError && <Text className="text-red-500 text-xs mt-1">{t('listing.titleRequired')}</Text>}
           </View>
 
           {/* Category */}
           <View className="mb-4">
-            <Text className="text-xs font-bold text-[#666] tracking-widest uppercase mb-1.5">Category</Text>
+            <Text className="text-xs font-bold text-[#666] tracking-widest uppercase mb-1.5">{t('listing.category')}</Text>
             <TouchableOpacity
               onPress={openCategoryPicker}
               className="flex-row items-center justify-between border rounded-xl px-4 py-3 bg-white"
               style={{ borderColor: categoryError ? '#EF4444' : '#E0E0E0' }}
             >
               <Text className="text-sm" style={{ color: category ? '#1A1A1A' : '#BBB' }}>
-                {category || 'Select Category'}
+                {category || t('listing.selectCategory')}
               </Text>
               <ChevronDown size={18} color="#999" />
             </TouchableOpacity>
-            {categoryError && <Text className="text-red-500 text-xs mt-1">Category is required</Text>}
+            {categoryError && <Text className="text-red-500 text-xs mt-1">{t('listing.categoryRequired')}</Text>}
           </View>
 
           {/* Description */}
           <View className="mb-4">
-            <Text className="text-xs font-bold text-[#666] tracking-widest uppercase mb-1.5">Description</Text>
+            <Text className="text-xs font-bold text-[#666] tracking-widest uppercase mb-1.5">{t('listing.description')}</Text>
             <TextInput
               value={description}
               onChangeText={setDescription}
-              placeholder="Condition, details, reason for selling..."
+              placeholder={t('listing.descriptionPlaceholder')}
               placeholderTextColor="#BBB"
               multiline
               numberOfLines={5}
@@ -273,7 +268,7 @@ export default function CreateListingModal() {
 
           {/* Price or Trade */}
           <View className="mb-6">
-            <Text className="text-xs font-bold text-[#666] tracking-widest uppercase mb-1.5">Price or Trade</Text>
+            <Text className="text-xs font-bold text-[#666] tracking-widest uppercase mb-1.5">{t('listing.priceOrTrade')}</Text>
 
             {/* Toggle — segmented control style */}
             <View
@@ -295,7 +290,7 @@ export default function CreateListingModal() {
                     className="text-sm font-semibold"
                     style={{ color: priceType === pt ? '#1A1A1A' : '#999' }}
                   >
-                    {pt.charAt(0).toUpperCase() + pt.slice(1)}
+                    {t(`listing.${pt}`)}
                   </Text>
                 </TouchableOpacity>
               ))}
@@ -318,42 +313,9 @@ export default function CreateListingModal() {
                 />
               </View>
             )}
-            {priceError && <Text className="text-red-500 text-xs mt-1">Price is required</Text>}
+            {priceError && <Text className="text-red-500 text-xs mt-1">{t('listing.priceRequired')}</Text>}
           </View>
 
-          {/* Meeting Preferences */}
-          <View className="mb-6">
-            <View className="flex-row items-center justify-between mb-3">
-              <Text className="text-xs font-bold text-[#666] tracking-widest uppercase">Meeting Preferences</Text>
-              <Text className="text-xs text-[#00654E] font-semibold">Safe Trade Zones</Text>
-            </View>
-            <View className="border border-[#E0E0E0] rounded-xl overflow-hidden bg-white">
-              {MEETING_LOCATIONS.map((loc, i) => (
-                <TouchableOpacity
-                  key={loc.id}
-                  onPress={() => setMeetingLocation(loc.id)}
-                  className="flex-row items-center px-4 py-3"
-                  style={{ borderTopWidth: i > 0 ? 1 : 0, borderTopColor: '#F0F0F0' }}
-                >
-                  <Text className="text-xl w-8">{loc.icon}</Text>
-                  <View className="flex-1 ml-2">
-                    <Text className="text-sm font-semibold text-[#1A1A1A]">{loc.label}</Text>
-                    <Text className="text-xs text-[#999]">{loc.sublabel}</Text>
-                  </View>
-                  <View
-                    className="w-6 h-6 rounded-full items-center justify-center"
-                    style={{
-                      borderWidth: meetingLocation === loc.id ? 0 : 1.5,
-                      borderColor: '#C0C0C0',
-                      backgroundColor: meetingLocation === loc.id ? '#00654E' : 'transparent',
-                    }}
-                  >
-                    {meetingLocation === loc.id && <Check size={13} color="white" strokeWidth={3} />}
-                  </View>
-                </TouchableOpacity>
-              ))}
-            </View>
-          </View>
 
           {/* Post button */}
           <TouchableOpacity
@@ -364,7 +326,7 @@ export default function CreateListingModal() {
           >
             {loading
               ? <ActivityIndicator color="white" />
-              : <Text style={{ color: canPost ? 'white' : '#999', fontWeight: '700', fontSize: 15 }}>Post Listing</Text>
+              : <Text style={{ color: canPost ? 'white' : '#999', fontWeight: '700', fontSize: 15 }}>{t('listing.postListing')}</Text>
             }
           </TouchableOpacity>
         </ScrollView>

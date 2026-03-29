@@ -47,7 +47,6 @@ class ListingCreate(BaseModel):
     condition: str = "good"
     category: str = "Other"
     price_type: str = "cash"
-    meeting_location: str | None = None
     image_urls: list[str] = []
 
 
@@ -76,7 +75,6 @@ class ListingOut(BaseModel):
     condition: str = "good"
     category: str = "Other"
     price_type: str = "cash"
-    meeting_location: str | None = None
     images: list[ListingImageOut] = []
 
     model_config = {"from_attributes": True}
